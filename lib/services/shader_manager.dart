@@ -50,6 +50,22 @@ class ShaderManager {
           'A mesmerizing 3D star field with volumetric rendering and interactive rotation.',
       thumbnailColor: Colors.deepPurpleAccent,
     ),
+    ShaderModel(
+      id: 'seascape',
+      name: 'Seascape',
+      assetKey: 'shaders/seascape.frag',
+      description:
+          'Dynamic ocean simulation with realistic waves, reflections, and interactive camera movement.',
+      thumbnailColor: Colors.tealAccent,
+    ),
+    ShaderModel(
+      id: 'retrowave_scene',
+      name: 'Retrowave Scene',
+      assetKey: 'shaders/retrowave_scene.frag',
+      description:
+          'A synthwave/retrowave aesthetic scene featuring a sunset, Mount Fuji, grid, and clouds.',
+      thumbnailColor: Colors.pinkAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {

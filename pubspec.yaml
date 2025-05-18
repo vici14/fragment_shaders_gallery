@@ -59,3 +59,5 @@ flutter:
     - shaders/circle_pulse.frag
     - shaders/fractal_color.frag
     - shaders/star_nest.frag
+    - shaders/seascape.frag
+    - shaders/retrowave_scene.frag
