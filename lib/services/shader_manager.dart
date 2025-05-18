@@ -34,6 +34,14 @@ class ShaderManager {
       description: 'A colorful pulsing circle with dynamic color shifts.',
       thumbnailColor: Colors.redAccent,
     ),
+    ShaderModel(
+      id: 'fractal_color',
+      name: 'Fractal Color',
+      assetKey: 'shaders/fractal_color.frag',
+      description:
+          'A hypnotic fractal pattern with dynamic colors based on distance functions.',
+      thumbnailColor: Colors.orangeAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {

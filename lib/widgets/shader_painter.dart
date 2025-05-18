@@ -15,8 +15,8 @@ class ShaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Always set the required parameters
-    shader.setFloat(0, 1000);
-    shader.setFloat(1, 2500);
+    shader.setFloat(0, size.width);
+    shader.setFloat(1, size.height);
     shader.setFloat(2, time);
 
     // Try to set mouse parameters if shader supports them
