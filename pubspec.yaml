@@ -63,3 +63,5 @@ flutter:
     - shaders/retrowave_scene.frag
     - shaders/singularity.frag
     - shaders/pinky.frag
+  assets:
+    - assets/demos/
