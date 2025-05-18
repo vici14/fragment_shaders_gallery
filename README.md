@@ -9,6 +9,11 @@ A Flutter project showcasing fragment shaders in a clean gallery format.
 - **Interactive Shaders**: Interact with shaders through gestures
 - **Centralized Management**: All shaders are managed through a central service
 
+## Live Demo
+
+Check out the live demo of the Fragment Shaders Gallery:
+[https://app-prod-abf9e.web.app/](https://app-prod-abf9e.web.app/)
+
 ## Project Structure
 
 The project is structured as follows:
@@ -27,44 +32,6 @@ lib/
   │   └── shader_preview.dart       # Widget for shader preview in gallery
   └── main.dart                     # Main application entry
 ```
-
-## Shaders Included
-
-- **Fractal Pyramid**: A colorful fractal pyramid shader with dynamic movement
-  
-  ![Fractal Pyramid Demo](assets/demos/fractal_pyramid.gif)
-
-- **Gradient Wave**: Smooth gradient waves with animated displacement
-  
-  ![Gradient Wave Demo](assets/demos/gradient_wave.gif)
-
-- **Pulsing Circle**: A colorful pulsing circle with dynamic color shifts
-  
-  ![Pulsing Circle Demo](assets/demos/circle_pulse.gif)
-
-- **Fractal Color**: A hypnotic fractal pattern with dynamic colors based on distance functions
-  
-  ![Fractal Color Demo](assets/demos/fractal_color.gif)
-
-- **Star Nest**: A mesmerizing 3D star field with volumetric rendering and interactive rotation
-  
-  ![Star Nest Demo](assets/demos/star_nest.gif)
-
-- **Seascape**: Dynamic ocean simulation with realistic waves, reflections, and interactive camera movement
-  
-  ![Seascape Demo](assets/demos/seascape.gif)
-
-- **Retrowave Scene**: A synthwave/retrowave aesthetic scene featuring a sunset, Mount Fuji, grid, and clouds
-  
-  ![Retrowave Scene Demo](assets/demos/retrowave_scene.gif)
-
-- **Singularity**: A whirling blackhole with colorful accretion disk and interactive touch control
-  
-  ![Singularity Demo](assets/demos/singularity.gif)
-
-- **Pinky**: A pinky shader with dynamic clouds and sun rays based on raymarching and turbulence
-  
-  ![Pinky Demo](assets/demos/pinky.gif)
 
 ## Dependencies
 
