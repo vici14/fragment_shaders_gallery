@@ -61,3 +61,4 @@ flutter:
     - shaders/star_nest.frag
     - shaders/seascape.frag
     - shaders/retrowave_scene.frag
+    - shaders/singularity.frag

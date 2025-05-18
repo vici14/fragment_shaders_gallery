@@ -66,6 +66,14 @@ class ShaderManager {
           'A synthwave/retrowave aesthetic scene featuring a sunset, Mount Fuji, grid, and clouds.',
       thumbnailColor: Colors.pinkAccent,
     ),
+    ShaderModel(
+      id: 'singularity',
+      name: 'Singularity',
+      assetKey: 'shaders/singularity.frag',
+      description:
+          'A whirling blackhole with colorful accretion disk and interactive touch control.',
+      thumbnailColor: Colors.indigoAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {
