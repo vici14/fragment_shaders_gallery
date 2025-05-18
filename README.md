@@ -53,19 +53,6 @@ To add a new shader:
 2. Tap on any shader to view it in detail
 3. In the detail view, interact with the shader by using touch gestures
 
-## Creating Shader Demos
-
-To create the shader demo GIFs:
-
-1. Run the app and record each shader's animation for 3-5 seconds
-2. Convert the recording to a GIF using tools like:
-   - [FFmpeg](https://ffmpeg.org/) (command line)
-   - [EzGif](https://ezgif.com/) (online)
-   - [ScreenToGif](https://www.screentogif.com/) (Windows)
-   - [Gifski](https://gif.ski/) (Mac)
-3. Optimize your GIFs to keep them under 2MB each
-4. Place them in the `assets/demos/` directory
-
 ## Learning Resources
 
 This project serves as a reference for learning about fragment shaders in Flutter, from basic implementation to interactive effects. For more information about fragment shaders in Flutter, visit the [Flutter website](https://docs.flutter.dev/ui/design/graphics/fragment-shaders).
