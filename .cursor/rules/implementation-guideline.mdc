@@ -1,0 +1,760 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Fragment Shaders Gallery Implementation Guideline
+
+This document provides a comprehensive guide to implementing the Fragment Shaders Gallery Flutter project.
+
+## 1. Project Setup
+
+### 1.1 Dependencies
+- Flutter SDK: ^3.7.2
+- flutter_shaders: ^0.1.3
+
+Add these dependencies to your pubspec.yaml:
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_shaders: ^0.1.3
+  cupertino_icons: ^1.0.8
+```
+
+### 1.2 Asset Configuration
+Register your shader files in the pubspec.yaml under the flutter section:
+```yaml
+flutter:
+  uses-material-design: true
+  shaders:
+    - shaders/fractal_pyramid.frag
+    - shaders/gradient_wave.frag
+    - shaders/circle_pulse.frag
+```
+
+## 2. Core Components Implementation
+
+### 2.1 Data Layer (lib/data/shader_model.dart)
+Create a model class to represent shader data:
+
+```dart
+class ShaderModel {
+  final String id;
+  final String name;
+  final String description;
+  final String assetPath;
+  final List<String> tags;
+  final DateTime createdAt;
+  final String author;
+  
+  const ShaderModel({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.assetPath,
+    this.tags = const [],
+    DateTime? createdAt,
+    this.author = 'Anonymous',
+  }) : createdAt = createdAt ?? DateTime.now();
+}
+```
+
+### 2.2 Service Layer (lib/services/shader_manager.dart)
+Implement a service to manage shaders:
+
+```dart
+import 'package:flutter/widgets.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
+import '../data/shader_model.dart';
+
+class ShaderManager {
+  static final ShaderManager _instance = ShaderManager._internal();
+  
+  factory ShaderManager() => _instance;
+  
+  ShaderManager._internal();
+  
+  final List<ShaderModel> _shaders = [
+    const ShaderModel(
+      id: 'fractal_pyramid',
+      name: 'Fractal Pyramid',
+      description: 'A colorful fractal pyramid with dynamic movement',
+      assetPath: 'shaders/fractal_pyramid.frag',
+      tags: ['fractal', 'geometric', 'colorful'],
+    ),
+    const ShaderModel(
+      id: 'gradient_wave',
+      name: 'Gradient Wave',
+      description: 'Smooth gradient waves with animated displacement',
+      assetPath: 'shaders/gradient_wave.frag',
+      tags: ['wave', 'gradient', 'smooth'],
+    ),
+    const ShaderModel(
+      id: 'circle_pulse',
+      name: 'Pulsing Circle',
+      description: 'A colorful pulsing circle with dynamic color shifts',
+      assetPath: 'shaders/circle_pulse.frag',
+      tags: ['circle', 'pulse', 'dynamic'],
+    ),
+  ];
+  
+  List<ShaderModel> get shaders => List.unmodifiable(_shaders);
+  
+  ShaderModel? getShaderById(String id) {
+    try {
+      return _shaders.firstWhere((shader) => shader.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  Future<FragmentShader> loadShader(String assetPath) async {
+    return await FragmentProgram.fromAsset(assetPath).compile();
+  }
+}
+```
+
+### 2.3 Widget Layer (lib/widgets/shader_painter.dart)
+Create a custom painter to render shaders:
+
+```dart
+import 'package:flutter/material.dart';
+
+class ShaderPainter extends CustomPainter {
+  final FragmentShader shader;
+  final double time;
+  final Offset? touchPosition;
+  
+  ShaderPainter({
+    required this.shader,
+    required this.time,
+    this.touchPosition,
+  });
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    shader.setFloat(0, size.width);
+    shader.setFloat(1, size.height);
+    shader.setFloat(2, time);
+    
+    if (touchPosition != null) {
+      shader.setFloat(3, touchPosition!.dx);
+      shader.setFloat(4, touchPosition!.dy);
+    } else {
+      shader.setFloat(3, size.width / 2);
+      shader.setFloat(4, size.height / 2);
+    }
+    
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..shader = shader,
+    );
+  }
+  
+  @override
+  bool shouldRepaint(ShaderPainter oldDelegate) {
+    return oldDelegate.time != time || 
+           oldDelegate.touchPosition != touchPosition;
+  }
+}
+```
+
+### 2.4 Widget Layer (lib/widgets/shader_preview.dart)
+Create a widget for shader previews in the gallery:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
+import '../data/shader_model.dart';
+import '../services/shader_manager.dart';
+import 'shader_painter.dart';
+
+class ShaderPreview extends StatefulWidget {
+  final ShaderModel shader;
+  final VoidCallback? onTap;
+  
+  const ShaderPreview({
+    Key? key,
+    required this.shader,
+    this.onTap,
+  }) : super(key: key);
+  
+  @override
+  State<ShaderPreview> createState() => _ShaderPreviewState();
+}
+
+class _ShaderPreviewState extends State<ShaderPreview> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 100),
+    )..repeat();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ShaderBuilder(
+                assetKey: widget.shader.assetPath,
+                (context, shader, child) {
+                  return AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: ShaderPainter(
+                          shader: shader,
+                          time: _controller.value * 100,
+                        ),
+                        child: Container(),
+                      );
+                    },
+                  );
+                },
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                widget.shader.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 2.5 Screen Layer (lib/screens/shaders_list_screen.dart)
+Implement the gallery screen:
+
+```dart
+import 'package:flutter/material.dart';
+import '../data/shader_model.dart';
+import '../services/shader_manager.dart';
+import '../widgets/shader_preview.dart';
+
+class ShadersListScreen extends StatelessWidget {
+  const ShadersListScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final shaderManager = ShaderManager();
+    final shaders = shaderManager.shaders;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Fragment Shaders Gallery'),
+        centerTitle: true,
+        backgroundColor: Colors.black,
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: shaders.length,
+        itemBuilder: (context, index) {
+          final shader = shaders[index];
+          return ShaderPreview(
+            shader: shader,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/shader_detail',
+                arguments: shader.id,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+### 2.6 Screen Layer (lib/screens/shader_detail_screen.dart)
+Implement the detail screen for viewing individual shaders:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
+import '../services/shader_manager.dart';
+import '../widgets/shader_painter.dart';
+
+class ShaderDetailScreen extends StatefulWidget {
+  final String shaderId;
+  
+  const ShaderDetailScreen({
+    Key? key,
+    required this.shaderId,
+  }) : super(key: key);
+  
+  @override
+  State<ShaderDetailScreen> createState() => _ShaderDetailScreenState();
+}
+
+class _ShaderDetailScreenState extends State<ShaderDetailScreen> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  Offset? _touchPosition;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 100),
+    )..repeat();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final shaderManager = ShaderManager();
+    final shader = shaderManager.getShaderById(widget.shaderId);
+    
+    if (shader == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Shader Not Found')),
+        body: const Center(child: Text('The requested shader was not found')),
+      );
+    }
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(shader.name),
+        backgroundColor: Colors.black.withOpacity(0.7),
+      ),
+      body: GestureDetector(
+        onPanDown: (details) {
+          setState(() {
+            _touchPosition = details.localPosition;
+          });
+        },
+        onPanUpdate: (details) {
+          setState(() {
+            _touchPosition = details.localPosition;
+          });
+        },
+        onPanEnd: (_) {
+          setState(() {
+            _touchPosition = null;
+          });
+        },
+        child: Stack(
+          children: [
+            ShaderBuilder(
+              assetKey: shader.assetPath,
+              (context, fragmentShader, child) {
+                return AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: ShaderPainter(
+                        shader: fragmentShader,
+                        time: _controller.value * 100,
+                        touchPosition: _touchPosition,
+                      ),
+                      child: Container(),
+                    );
+                  },
+                );
+              },
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: Card(
+                color: Colors.black.withOpacity(0.7),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        shader.name,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        shader.description,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: shader.tags.map((tag) {
+                          return Chip(
+                            label: Text(tag),
+                            backgroundColor: Colors.blueGrey.withOpacity(0.3),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 2.7 Main App (lib/main.dart)
+The main.dart file setting up the application:
+
+```dart
+import 'package:flutter/material.dart';
+import 'screens/shader_detail_screen.dart';
+import 'screens/shaders_list_screen.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Fragment Shaders Gallery',
+      theme: ThemeData(
+        colorSchemeSeed: Colors.blue,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      initialRoute: '/',
+      routes: {'/': (context) => const ShadersListScreen()},
+      onGenerateRoute: (settings) {
+        if (settings.name == '/shader_detail') {
+          final shaderId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => ShaderDetailScreen(shaderId: shaderId),
+          );
+        }
+        return null;
+      },
+    );
+  }
+}
+```
+
+## 3. Shader Implementation
+
+### 3.1 Shader Structure
+Create your .frag files in the 'shaders/' directory using this general structure:
+
+```glsl
+#version 460 core
+
+precision highp float;
+
+// Uniforms passed from Flutter
+uniform vec2 resolution;   // Canvas size
+uniform float time;        // Animation time
+uniform vec2 touch;        // Touch position
+
+// Output
+out vec4 fragColor;
+
+void main() {
+    // Get normalized coordinates
+    vec2 uv = gl_FragCoord.xy / resolution;
+    
+    // Shader-specific logic here
+    // ...
+    
+    // Output final color
+    fragColor = vec4(color, 1.0);
+}
+```
+
+### 3.2 Example: Fractal Pyramid Shader (shaders/fractal_pyramid.frag)
+This implements a colorful fractal pyramid:
+
+```glsl
+#version 460 core
+
+precision highp float;
+
+uniform vec2 resolution;
+uniform float time;
+uniform vec2 touch;
+
+out vec4 fragColor;
+
+// Fractal function
+float pyramid(vec3 p, float scale) {
+    const int iterations = 10;
+    float r = 1.0;
+    
+    for(int i = 0; i < iterations; i++) {
+        // Fold space
+        p.xy = abs(p.xy);
+        p = p * scale - vec3(1.0, 1.0, 0.0) * (scale - 1.0);
+        
+        // Rotate based on time
+        float a = time * 0.1;
+        p.xz = mat2(cos(a), -sin(a), sin(a), cos(a)) * p.xz;
+        
+        r *= scale;
+    }
+    
+    return length(p) / r;
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * resolution) / resolution.y;
+    vec2 mouse = (touch - 0.5 * resolution) / resolution.y;
+    
+    // Use touch position for camera movement
+    vec3 ro = vec3(mouse.x * 2.0, mouse.y * 2.0, -3.0 + sin(time * 0.2) * 0.5);
+    vec3 rd = normalize(vec3(uv, 1.0));
+    
+    // Ray marching
+    float t = 0.0;
+    float d = 0.0;
+    vec3 p = ro;
+    
+    for(int i = 0; i < 64; i++) {
+        p = ro + rd * t;
+        d = pyramid(p, 2.0);
+        t += d * 0.5;
+        
+        if(d < 0.001 || t > 10.0) break;
+    }
+    
+    // Coloring
+    vec3 color = vec3(0.0);
+    
+    if(d < 0.01) {
+        float light = exp(-t * 0.2);  // Attenuation
+        vec3 rainbow = 0.5 + 0.5 * cos(t * 0.5 + uv.xyx + vec3(0, 2, 4));
+        color = rainbow * light;
+    }
+    
+    fragColor = vec4(color, 1.0);
+}
+```
+
+### 3.3 Example: Gradient Wave Shader (shaders/gradient_wave.frag)
+This implements smooth animated waves:
+
+```glsl
+#version 460 core
+
+precision highp float;
+
+uniform vec2 resolution;
+uniform float time;
+uniform vec2 touch;
+
+out vec4 fragColor;
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 tc = uv * 2.0 - 1.0;
+    
+    // Use touch to control wave center
+    vec2 touchUV = touch / resolution;
+    vec2 center = touchUV * 2.0 - 1.0;
+    
+    // Calculate distance from center
+    float dist = length(tc - center);
+    
+    // Create waves
+    float wave = sin(dist * 10.0 - time) * 0.5 + 0.5;
+    
+    // Create gradient colors
+    vec3 color1 = vec3(0.1, 0.3, 0.8);
+    vec3 color2 = vec3(0.9, 0.1, 0.4);
+    vec3 color = mix(color1, color2, wave);
+    
+    fragColor = vec4(color, 1.0);
+}
+```
+
+### 3.4 Example: Pulsing Circle Shader (shaders/circle_pulse.frag)
+This implements a pulsing circle effect:
+
+```glsl
+#version 460 core
+
+precision highp float;
+
+uniform vec2 resolution;
+uniform float time;
+uniform vec2 touch;
+
+out vec4 fragColor;
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 center = touch / resolution;
+    
+    // If touch is (0,0), use screen center
+    if (touch.x == 0.0 && touch.y == 0.0) {
+        center = vec2(0.5, 0.5);
+    }
+    
+    // Calculate distance from center
+    float dist = distance(uv, center);
+    
+    // Create pulsing effect
+    float pulse = sin(time * 2.0) * 0.5 + 0.5;
+    float circle = smoothstep(0.2 + pulse * 0.1, 0.0, dist);
+    
+    // Create rainbow color
+    vec3 color = 0.5 + 0.5 * cos(time + uv.xyx * 6.28 + vec3(0, 2, 4));
+    
+    // Apply circle mask
+    color *= circle;
+    
+    fragColor = vec4(color, 1.0);
+}
+```
+
+## 4. Best Practices & Optimization
+
+### 4.1 Shader Optimization
+- Keep shader complexity reasonable to maintain good performance
+- Use uniform variables efficiently
+- Optimize math operations when possible
+
+### 4.2 Widget Lifecycle
+- Always dispose of animation controllers
+- Use repaint boundaries for complex shaders
+- Consider using ValueNotifier for state that only affects the shader
+
+### 4.3 Performance Considerations
+- Test on lower-end devices to ensure performance
+- Consider adding quality settings for complex shaders
+- Use ShaderWarmUp to precompile shaders on app start for smoother UX
+
+## 5. Advanced Features (Extension Ideas)
+
+### 5.1 Shader Parameters
+Extend ShaderModel to include customizable parameters:
+
+```dart
+class ShaderParameter {
+  final String name;
+  final String label;
+  final double min;
+  final double max;
+  final double defaultValue;
+  double currentValue;
+  
+  ShaderParameter({
+    required this.name,
+    required this.label,
+    required this.min,
+    required this.max,
+    required this.defaultValue,
+  }) : currentValue = defaultValue;
+}
+
+// Add to ShaderModel:
+final List<ShaderParameter> parameters;
+```
+
+### 5.2 Shader Categories
+Implement categories to organize shaders:
+
+```dart
+enum ShaderCategory {
+  fractal,
+  geometric,
+  wave,
+  artistic,
+  experimental,
+}
+
+// Add to ShaderModel:
+final ShaderCategory category;
+```
+
+### 5.3 Shader Export
+Add functionality to export shader images:
+
+```dart
+Future<Uint8List> captureShader(ShaderModel shader, Size size) async {
+  final recorder = PictureRecorder();
+  final canvas = Canvas(recorder);
+  
+  final fragmentShader = await ShaderManager().loadShader(shader.assetPath);
+  final painter = ShaderPainter(
+    shader: fragmentShader,
+    time: DateTime.now().millisecondsSinceEpoch / 1000.0,
+  );
+  
+  painter.paint(canvas, size);
+  
+  final picture = recorder.endRecording();
+  final image = await picture.toImage(size.width.toInt(), size.height.toInt());
+  final byteData = await image.toByteData(format: ImageByteFormat.png);
+  
+  return byteData!.buffer.asUint8List();
+}
+```
+
+## 6. Testing
+
+Create appropriate tests for:
+- Shader loading and rendering
+- UI interaction
+- Widget state management
+
+## 7. Deployment
+
+- Ensure all shaders are properly compiled for different platforms
+- Test on actual devices before release
+- Consider platform-specific optimizations if needed
+
+This implementation guide should provide a comprehensive roadmap for building the Fragment Shaders Gallery project as outlined in the README and existing code base. 

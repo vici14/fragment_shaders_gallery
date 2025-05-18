@@ -34,6 +34,14 @@ class ShaderManager {
       description: 'A colorful pulsing circle with dynamic color shifts.',
       thumbnailColor: Colors.redAccent,
     ),
+    ShaderModel(
+      id: 'waveform',
+      name: 'Waveform',
+      assetKey: 'shaders/waveform.frag',
+      description:
+          'Dynamic waveform visualization with reflections and raymarching.',
+      thumbnailColor: Colors.greenAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {
