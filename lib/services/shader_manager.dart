@@ -42,6 +42,14 @@ class ShaderManager {
           'A hypnotic fractal pattern with dynamic colors based on distance functions.',
       thumbnailColor: Colors.orangeAccent,
     ),
+    ShaderModel(
+      id: 'star_nest',
+      name: 'Star Nest',
+      assetKey: 'shaders/star_nest.frag',
+      description:
+          'A mesmerizing 3D star field with volumetric rendering and interactive rotation.',
+      thumbnailColor: Colors.deepPurpleAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {

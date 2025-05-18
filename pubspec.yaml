@@ -58,3 +58,4 @@ flutter:
     - shaders/gradient_wave.frag
     - shaders/circle_pulse.frag
     - shaders/fractal_color.frag
+    - shaders/star_nest.frag
