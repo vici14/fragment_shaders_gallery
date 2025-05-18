@@ -12,7 +12,7 @@ A Flutter project showcasing fragment shaders in a clean gallery format.
 ## Live Demo
 
 Check out the live demo of the Fragment Shaders Gallery:
-[https://app-prod-abf9e.web.app/](https://fragment-shader-gallery.web.app/)
+[https://fragment-shader-gallery.web.app/](https://fragment-shader-gallery.web.app/)
 
 ## Project Structure
 
