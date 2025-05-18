@@ -74,6 +74,14 @@ class ShaderManager {
           'A whirling blackhole with colorful accretion disk and interactive touch control.',
       thumbnailColor: Colors.indigoAccent,
     ),
+    ShaderModel(
+      id: 'pinky',
+      name: 'Pinky',
+      assetKey: 'shaders/pinky.frag',
+      description:
+          'A pinky shader with dynamic clouds and sun rays based on raymarching and turbulence.',
+      thumbnailColor: Colors.pinkAccent,
+    ),
   ];
 
   ShaderModel? getShaderById(String id) {
