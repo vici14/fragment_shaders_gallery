@@ -22,6 +22,13 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
   final ShaderManager shaderManager = ShaderManager();
   late ShaderModel? shader;
 
+  // Controller mode state
+  bool _controllerModeEnabled = false;
+  double _width = 800;
+  double _height = 600;
+  double _timeMultiplier = 20.0;
+  bool _isPaused = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +46,23 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
     super.dispose();
   }
 
+  void _toggleControllerMode() {
+    setState(() {
+      _controllerModeEnabled = !_controllerModeEnabled;
+    });
+  }
+
+  void _togglePause() {
+    setState(() {
+      _isPaused = !_isPaused;
+      if (_isPaused) {
+        _controller.stop();
+      } else {
+        _controller.repeat();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (shader == null) {
@@ -54,6 +78,20 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
       appBar: AppBar(
         title: Text(shader!.name),
         backgroundColor: Colors.black87,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _controllerModeEnabled ? Icons.tune : Icons.tune_outlined,
+            ),
+            onPressed: _toggleControllerMode,
+            tooltip: 'Toggle controls',
+          ),
+          IconButton(
+            icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+            onPressed: _togglePause,
+            tooltip: 'Play/Pause',
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,8 +111,10 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
                     (context, shaderInstance, child) => CustomPaint(
                       painter: ShaderPainter(
                         shader: shaderInstance,
-                        time: _controller.value * 20.0,
+                        time: _controller.value * _timeMultiplier,
                         mouse: _mousePosition,
+                        width: _controllerModeEnabled ? _width : null,
+                        height: _controllerModeEnabled ? _height : null,
                       ),
                       size: Size.infinite,
                     ),
@@ -93,6 +133,37 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
               ),
             ),
           ),
+          // Control panel
+          if (_controllerModeEnabled)
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.black.withOpacity(0.8),
+              child: Column(
+                children: [
+                  _buildSlider(
+                    'Width',
+                    _width,
+                    100,
+                    2000,
+                    (value) => setState(() => _width = value),
+                  ),
+                  _buildSlider(
+                    'Height',
+                    _height,
+                    100,
+                    2000,
+                    (value) => setState(() => _height = value),
+                  ),
+                  _buildSlider(
+                    'Time Multiplier',
+                    _timeMultiplier,
+                    1,
+                    60,
+                    (value) => setState(() => _timeMultiplier = value),
+                  ),
+                ],
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.black87,
@@ -112,16 +183,41 @@ class _ShaderDetailScreenState extends State<ShaderDetailScreen>
                   shader!.description,
                   style: const TextStyle(fontSize: 16, color: Colors.white70),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Interact with the shader by dragging your finger or mouse across the screen.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white54,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlider(
+    String label,
+    double value,
+    double min,
+    double max,
+    ValueChanged<double> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label: ${value.toStringAsFixed(1)}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          Expanded(
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: 100,
+              onChanged: onChanged,
+              activeColor: Colors.tealAccent,
+              inactiveColor: Colors.grey.shade800,
             ),
           ),
         ],
